@@ -10,8 +10,7 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { signOut } from '@/app/actions/auth'
-import { Search, Bell, Settings, Plus, LayoutGrid, TrendingUp, Wallet, User } from 'lucide-react'
+import { Plus, LayoutGrid, TrendingUp, Wallet, User } from 'lucide-react'
 import DashboardClient from '@/components/dashboard/DashboardClient'
 import DashboardNav from '@/components/dashboard/DashboardNav'
 import { Profile, LedgerEntry } from '@/types/database'
@@ -35,7 +34,6 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
 
   const displayName = profile?.full_name || user.email || 'User'
-  const initial = displayName.charAt(0).toUpperCase()
 
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 relative overflow-x-hidden transition-colors duration-300">
