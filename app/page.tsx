@@ -11,10 +11,10 @@
  * ✅ Typography: fluid via text-{size} sm:text-{size} lg:text-{size} scale
  */
 
-import Navbar from '@/app/components/Navbar'
-import HeroSection from '@/app/components/HeroSection'
-import FeaturesSection from '@/app/components/FeaturesSection'
-import Footer from '@/app/components/Footer'
+import Navbar from '@/components/landing/Navbar'
+import HeroSection from '@/components/landing/HeroSection'
+import FeaturesSection from '@/components/landing/FeaturesSection'
+import Footer from '@/components/landing/Footer'
 import { Toaster } from 'sonner'
 
 export default function Home() {

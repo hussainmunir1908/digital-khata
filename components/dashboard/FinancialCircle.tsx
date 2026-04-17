@@ -27,10 +27,10 @@ export default function FinancialCircle({ entries }: Props) {
   // Aggregate by entity
   const map = new Map<string, { owesMe: number; iOwe: number }>()
   entries.forEach((e) => {
-    const cur = map.get(e.entity) ?? { owesMe: 0, iOwe: 0 }
+    const cur = map.get(e.person_name) ?? { owesMe: 0, iOwe: 0 }
     if (e.type === 'debt') cur.owesMe += Number(e.amount)
     else cur.iOwe += Number(e.amount)
-    map.set(e.entity, cur)
+    map.set(e.person_name, cur)
   })
 
   const people = Array.from(map.entries())

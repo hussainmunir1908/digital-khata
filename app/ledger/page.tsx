@@ -1,24 +1,15 @@
-/**
- * app/dashboard/page.tsx — Protected dashboard
- * Server Component: reads user from Supabase server client.
- * Matches the HTML reference design:
- *  - Fixed glassmorphic top navbar (Khata + nav + search + actions + avatar)
- *  - Animated radial gradient background + grain overlay
- *  - Floating Action Button (FAB)
- *  - Mobile bottom nav
- */
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/app/actions/auth'
-import { Search, Bell, Settings, Plus, LayoutGrid, TrendingUp, Wallet, User } from 'lucide-react'
-import DashboardClient from '@/components/dashboard/DashboardClient'
+import { Search, Bell, Settings, Filter, LayoutGrid, TrendingUp, Wallet, User, Plus } from 'lucide-react'
+import { Toaster } from 'sonner'
+import LedgerClient from '@/components/khata-ledger/LedgerClient'
 import { Profile, LedgerEntry } from '@/types/database'
 
-export default async function DashboardPage() {
+export default async function LedgerPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
@@ -38,15 +29,13 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen relative overflow-x-hidden">
-      {/* Animated radial gradient background */}
+      <Toaster position="top-right" />
+
+      {/* Background */}
       <div
         className="fixed inset-0 -z-20"
-        style={{
-          background:
-            'radial-gradient(circle at top left, #DBEAFE, #BFDBFE, #93C5FD)',
-        }}
+        style={{ background: 'radial-gradient(circle at top left, #DBEAFE, #BFDBFE, #93C5FD)' }}
       />
-      {/* Grain/noise texture overlay */}
       <div className="grain-overlay fixed inset-0 -z-10" aria-hidden="true" />
 
       {/* ── Fixed Top Navbar ── */}
@@ -65,12 +54,18 @@ export default async function DashboardPage() {
               Khata
             </Link>
             <nav className="hidden md:flex items-center gap-2">
-              <span className="text-blue-700 font-bold border-b-2 border-blue-600 px-1 pb-0.5 text-sm cursor-pointer">
+              <Link
+                href="/dashboard"
+                className="text-slate-600 font-medium hover:bg-white/20 transition-all px-3 py-1 rounded-full text-sm"
+              >
                 Overview
-              </span>
-              <span className="text-slate-600 font-medium hover:bg-white/20 transition-all px-3 py-1 rounded-full text-sm cursor-pointer">
+              </Link>
+              <Link
+                href="/ledger"
+                className="text-blue-700 font-bold border-b-2 border-blue-600 px-1 pb-0.5 text-sm"
+              >
                 Ledger
-              </span>
+              </Link>
               <span className="text-slate-600 font-medium hover:bg-white/20 transition-all px-3 py-1 rounded-full text-sm cursor-pointer">
                 Scanner
               </span>
@@ -79,7 +74,6 @@ export default async function DashboardPage() {
 
           {/* Right: search + icons + avatar */}
           <div className="flex items-center gap-3">
-            {/* Search bar */}
             <div
               className="hidden md:flex items-center rounded-full px-4 py-1.5 gap-2 glass-border"
               style={{ background: 'rgba(255,255,255,0.10)', backdropFilter: 'blur(12px)' }}
@@ -97,7 +91,6 @@ export default async function DashboardPage() {
             <button className="p-2 text-slate-600 hover:bg-white/20 rounded-full transition-all">
               <Settings size={18} />
             </button>
-            {/* Avatar doubles as sign-out trigger */}
             <form action={signOut}>
               <button
                 type="submit"
@@ -111,11 +104,26 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      {/* ── Main content ── */}
+      {/* ── Main Content ── */}
       <main className="pt-32 pb-24 px-6 max-w-7xl mx-auto space-y-10">
-        <DashboardClient
+        {/* Page Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Financial Circle</h1>
+            <p className="text-slate-500 mt-1 text-base">Keep track of who owes who.</p>
+          </div>
+          <button
+            className="flex items-center gap-2 px-4 py-2 rounded-full glass-border text-slate-700 text-sm font-medium hover:bg-white/40 transition-all shrink-0"
+            style={{ background: 'rgba(255,255,255,0.20)', backdropFilter: 'blur(12px)' }}
+          >
+            <Filter size={15} />
+            Filter Activity
+          </button>
+        </div>
+
+        <LedgerClient
           profile={profile as Profile | null}
-          initialEntries={(initialEntries as LedgerEntry[]) || []}
+          initialEntries={(initialEntries as LedgerEntry[]) ?? []}
         />
       </main>
 
@@ -134,14 +142,17 @@ export default async function DashboardPage() {
         className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-6 pt-2 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.04)] glass-border"
         style={{ background: 'rgba(255,255,255,0.30)', backdropFilter: 'blur(24px)' }}
       >
-        {([
-          { icon: LayoutGrid, label: 'Home', active: true },
-          { icon: TrendingUp, label: 'Insights', active: false },
-          { icon: Wallet, label: 'Wallets', active: false },
-          { icon: User, label: 'Profile', active: false },
-        ] as const).map(({ icon: Icon, label, active }) => (
-          <button
+        {(
+          [
+            { icon: LayoutGrid, label: 'Home', href: '/dashboard', active: false },
+            { icon: TrendingUp, label: 'Ledger', href: '/ledger', active: true },
+            { icon: Wallet, label: 'Wallets', href: '#', active: false },
+            { icon: User, label: 'Profile', href: '#', active: false },
+          ] as const
+        ).map(({ icon: Icon, label, href, active }) => (
+          <Link
             key={label}
+            href={href}
             className={`flex flex-col items-center justify-center p-3 rounded-full transition-all duration-300 ${
               active
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/40 scale-110'
@@ -150,7 +161,7 @@ export default async function DashboardPage() {
           >
             <Icon size={20} />
             <span className="text-[11px] font-bold uppercase tracking-widest mt-1">{label}</span>
-          </button>
+          </Link>
         ))}
       </footer>
     </div>

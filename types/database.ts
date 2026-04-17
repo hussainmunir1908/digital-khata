@@ -3,8 +3,8 @@ export type LedgerEntry = {
   user_id: string
   amount: number
   type: 'credit' | 'debt'
-  entity: string
-  category: string | null
+  person_name: string
+  description: string | null
   created_at: string
 }
 

@@ -69,7 +69,7 @@ export default function TransactionFeed({ entries }: Props) {
         ) : (
           sorted.map((entry) => {
             const isDebt = entry.type === 'debt'
-            const { icon: Icon, bg, iconColor } = categoryIcon(entry.category)
+            const { icon: Icon, bg, iconColor } = categoryIcon(entry.description)
             const amount = Number(entry.amount).toLocaleString('en-US', {
               minimumFractionDigits: 0,
             })
@@ -86,10 +86,10 @@ export default function TransactionFeed({ entries }: Props) {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm text-slate-800 truncate">{entry.entity}</p>
+                  <p className="font-bold text-sm text-slate-800 truncate">{entry.person_name}</p>
                   <p className="text-[10px] text-slate-500 mt-0.5">
                     {format(parseISO(entry.created_at), "MMM d, h:mm a")}
-                    {entry.category ? ` · ${entry.category}` : ''}
+                    {entry.description ? ` · ${entry.description}` : ''}
                   </p>
                 </div>
 

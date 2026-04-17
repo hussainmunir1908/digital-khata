@@ -47,8 +47,8 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Protect /dashboard — redirect unauthenticated users to /login
-  if (pathname.startsWith('/dashboard') && !user) {
+  // Protect /dashboard and /ledger — redirect unauthenticated users to /login
+  if ((pathname.startsWith('/dashboard') || pathname.startsWith('/ledger')) && !user) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/login'
     return NextResponse.redirect(redirectUrl)
