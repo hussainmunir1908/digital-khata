@@ -3,7 +3,6 @@
 /**
  * DashboardNav — Shared glassmorphic top navbar for all dashboard pages.
  * Features:
- *  - Dark mode toggle (moon/sun) — persists via localStorage
  *  - Avatar dropdown with Settings + Sign Out options
  *  - Outside-click closes dropdown
  *  - Active nav item derived from usePathname()
@@ -12,12 +11,13 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { signOut } from '@/app/actions/auth'
-import { Search, Bell, Moon, Sun, Settings, LogOut } from 'lucide-react'
+import { Search, Bell, Settings, LogOut } from 'lucide-react'
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/dashboard' },
   { label: 'Ledger',   href: '/ledger' },
   { label: 'Scanner',  href: '/scanner' },
+  { label: 'Recordings', href: '/recordings' },
 ]
 
 type Props = { displayName: string }
@@ -26,24 +26,6 @@ export default function DashboardNav({ displayName }: Props) {
   const pathname = usePathname()
   const initial  = displayName.charAt(0).toUpperCase()
 
-  // ── Dark mode ──────────────────────────────────────────────
-  const [dark, setDark] = useState(false)
-
-  useEffect(() => {
-    // Restore saved preference or respect system preference
-    const saved = localStorage.getItem('khata-dark')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    if (saved === 'true' || (saved === null && prefersDark)) {
-      document.documentElement.classList.add('dark')
-      setDark(true)
-    }
-  }, [])
-
-  function toggleDark() {
-    const isDark = document.documentElement.classList.toggle('dark')
-    setDark(isDark)
-    localStorage.setItem('khata-dark', String(isDark))
-  }
 
   // ── Account dropdown ───────────────────────────────────────
   const [open, setOpen] = useState(false)
@@ -110,14 +92,6 @@ export default function DashboardNav({ displayName }: Props) {
             <Bell size={18} />
           </button>
 
-          {/* Dark mode toggle */}
-          <button
-            onClick={toggleDark}
-            aria-label="Toggle dark mode"
-            className="p-2 text-slate-500 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/10 rounded-full transition-all"
-          >
-            {dark ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} />}
-          </button>
 
           {/* ── Avatar + dropdown ── */}
           <div ref={dropdownRef} className="relative">
