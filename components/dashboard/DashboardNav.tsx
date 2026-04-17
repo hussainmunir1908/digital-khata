@@ -17,7 +17,7 @@ import { Search, Bell, Moon, Sun, Settings, LogOut } from 'lucide-react'
 const NAV_ITEMS = [
   { label: 'Overview', href: '/dashboard' },
   { label: 'Ledger',   href: '/ledger' },
-  { label: 'Scanner',  href: '/dashboard/scanner' },
+  { label: 'Scanner',  href: '/scanner' },
 ]
 
 type Props = { displayName: string }

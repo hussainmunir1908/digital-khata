@@ -14,7 +14,7 @@ import {
 const navItems = [
   { label: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Ledger', href: '/ledger', icon: BookOpen },
-  { label: 'Scanner', href: '/dashboard/scanner', icon: ScanLine },
+  { label: 'Scanner', href: '/scanner', icon: ScanLine },
 ]
 
 export default function Sidebar() {

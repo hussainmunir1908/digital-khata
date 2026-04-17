@@ -54,14 +54,15 @@ export default async function DashboardPage() {
       </main>
 
       {/* ── FAB ── */}
-      <button
+      <Link
+        href="/scanner"
         className="fixed bottom-8 right-8 w-16 h-16 text-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(59,130,246,0.4)] hover:scale-110 active:scale-95 transition-all z-50 group"
         style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}
-        aria-label="Add entry"
+        aria-label="Scan or add entry"
       >
         <Plus size={28} strokeWidth={2} className="group-hover:rotate-90 transition-transform duration-300" />
         <span className="absolute inset-0 rounded-full border-2 border-white/30 animate-ping opacity-20" />
-      </button>
+      </Link>
 
       {/* ── Mobile Bottom Nav ── */}
       <footer

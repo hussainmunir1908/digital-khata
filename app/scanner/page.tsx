@@ -1,12 +1,13 @@
 /**
- * app/dashboard/scanner/page.tsx — Khata Scanner Page
+ * app/scanner/page.tsx — Khata Scanner Page
  * Server Component: auth check + profile fetch, then renders scanner UI.
  */
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Plus, LayoutGrid, TrendingUp, Wallet, User } from 'lucide-react'
-import DashboardNav from '@/app/components/dashboard/DashboardNav'
-import ScannerClient from '@/app/components/scanner/ScannerClient'
+import DashboardNav from '@/components/dashboard/DashboardNav'
+import ScannerClient from '@/components/scanner/ScannerClient'
 
 export default async function ScannerPage() {
   const supabase = await createClient()
@@ -63,15 +64,18 @@ export default async function ScannerPage() {
         className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-6 pt-2 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.04)] glass-border"
         style={{ background: 'rgba(255,255,255,0.70)', backdropFilter: 'blur(24px)' }}
       >
-        {([
-          { icon: LayoutGrid, label: 'Home',     active: false, href: '/dashboard' },
-          { icon: TrendingUp, label: 'Insights',  active: false, href: '#' },
-          { icon: Wallet,     label: 'Wallets',   active: false, href: '#' },
-          { icon: User,       label: 'Profile',   active: false, href: '#' },
-        ] as const).map(({ icon: Icon, label, active }) => (
-          <button
+        {(
+          [
+            { icon: LayoutGrid, label: 'Home',     active: false, href: '/dashboard' },
+            { icon: TrendingUp, label: 'Ledger',  active: false, href: '/ledger' },
+            { icon: Wallet,     label: 'Wallets',   active: false, href: '#' },
+            { icon: User,       label: 'Profile',   active: false, href: '#' },
+          ] as const
+        ).map(({ icon: Icon, label, href, active }) => (
+          <Link
             key={label}
-            className={`flex flex-col items-center justify-center p-3 rounded-full transition-all ${
+            href={href}
+            className={`flex flex-col items-center justify-center p-3 rounded-full transition-all duration-300 ${
               active
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/40 scale-110'
                 : 'text-slate-500 hover:text-blue-500'
@@ -79,7 +83,7 @@ export default async function ScannerPage() {
           >
             <Icon size={20} />
             <span className="text-[11px] font-bold uppercase tracking-widest mt-1">{label}</span>
-          </button>
+          </Link>
         ))}
       </footer>
     </div>
