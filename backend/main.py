@@ -6,8 +6,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
 from dotenv import load_dotenv
 
-dotenv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
-load_dotenv(dotenv_path)
+dotenv_path_local = os.path.join(os.path.dirname(__file__), '.env')
+dotenv_path_parent = os.path.join(os.path.dirname(__file__), '..', '.env')
+
+if os.path.exists(dotenv_path_local):
+    load_dotenv(dotenv_path_local)
+elif os.path.exists(dotenv_path_parent):
+    load_dotenv(dotenv_path_parent)
+else:
+    load_dotenv() # Fallback
+
 app = FastAPI(title="Digital Khata AI Backend")
 
 app.add_middleware(
@@ -21,20 +29,54 @@ app.add_middleware(
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 VOICE_SYSTEM_PROMPT = """You are a financial transaction parser for Pakistani users.
-Extract transaction details from Urdu/English text and return a JSON object.
+Extract transaction details from Urdu/English/mixed text and return a JSON object.
 Return ONLY valid JSON with these exact fields:
 {
   "amount": <number>,
-  "entity": "<person or shop name>",
+  "entity": "<person or shop name in English>",
   "category": "<one of: groceries, utilities, food, transport, shopping, healthcare, education, misc>",
   "type": "<credit or debt>",
   "description": "<brief English summary>"
 }
-Rules:
-- "credit" means the user GAVE money (diye, dia, gave)
-- "debt" means the user RECEIVED money or OWES money (liye, lena hai, owe)
-- Extract numeric amount only (no currency symbols)
-- Keep entity as a proper name"""
+
+=== TYPE DEFINITIONS ===
+"debt"   = SOMEONE OWES YOU — money is coming IN to you. You lent money or are owed money.
+"credit" = YOU OWE or YOU SPENT — money is going OUT from you. You paid, gave, or borrowed.
+
+CRITICAL: Ask yourself — whose pocket is lighter after this transaction?
+- If YOUR pocket is lighter (you paid/gave/borrowed) → "credit"
+- If THEIR pocket is lighter (they borrowed from you, owe you) → "debt"
+
+=== URDU PATTERNS ===
+
+DEBT (they owe you — money coming IN):
+- "se lene hain / se lena hai"  → "Ali se lene hain 2000" = Ali owes you
+- "wapas karna hai"             → "Fatima ko 200 wapas karna hai" = Fatima must return to you
+- "udhar diya tha / diye thay"  → "Hassan ko udhar diya tha 3000" = you lent, he owes
+- "qarz hai / baqi hai"         → "Ahmed ke 500 baqi hain" = Ahmed still owes
+- "X owes me / X owes mujhe"    → direct English debt signal
+- "X ne mujh se liye thay"      → X had borrowed FROM you
+- "X ko mujhe dene hain"        → X needs to give YOU (they owe)
+
+CREDIT (you spent / you owe — money going OUT):
+- "ko diye / ko dia"            → "Fatima ko 200 diye" = you gave to Fatima
+- "se liya / se liye"           → "Ali se liya 1500" = you borrowed FROM Ali
+- "ko dena hai mujhe"           → "Hassan ko dena hai 3000" = you must give to Hassan
+- "kharch kiye / kharch kiya"   → you spent
+- "ada karna hai"               → you need to pay
+- "I owe X / mujhe X ko dena"  → you owe them
+- "paid X / gave X"             → you paid out
+
+=== TRICKY CASES ===
+"Ali ko dene hain"              → I owe Ali → CREDIT
+"Ali ko mujhe dene hain"        → Ali owes me → DEBT
+"diye thay" (past, lent)        → DEBT (you lent, they still owe)
+"diye" (just now, current)      → CREDIT (you just paid out)
+
+=== OUTPUT RULES ===
+- Always transliterate entity names to English ("سلمان" → "Salman", "دکان" → "Shop")
+- All fields must be in English only — no Urdu or Arabic script in output
+- Extract numeric amount only (no currency symbols)"""
 
 OCR_SYSTEM_PROMPT = """You are a receipt OCR parser. Extract all data from this receipt image.
 The receipt may be in Urdu, English, or mixed. Translate everything to English.

@@ -6,7 +6,7 @@ import { motion, useInView } from 'framer-motion'
 
 // Hussain is center (index 1)
 const TEAM = [
-  { index: '01', first: 'Marium', last: 'Imran', photo: null },
+  { index: '01', first: 'Marium', last: 'Imran', photo: '/MariumPicture.jpeg' },
   { index: '02', first: 'Hussain', last: 'Munir', photo: '/HussainPicture.webp' },
   { index: '03', first: 'Fatima', last: 'Liaquat', photo: '/FatimaPicture.jpeg' },
 ]

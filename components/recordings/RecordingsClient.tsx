@@ -311,12 +311,12 @@ export default function RecordingsClient() {
                         <p className="text-slate-400 text-xs mb-0.5">Type</p>
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
-                            parsedEntry.data.type === 'credit'
-                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                            parsedEntry.data.type === 'debt'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
                               : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
                           }`}
                         >
-                          {parsedEntry.data.type === 'credit' ? 'You gave' : 'You owe'}
+                          {parsedEntry.data.type === 'debt' ? '↓ They owe you' : '↑ You spent'}
                         </span>
                       </div>
                     </div>
