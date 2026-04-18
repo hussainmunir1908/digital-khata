@@ -2,7 +2,7 @@
 
 import { LedgerEntry, Profile } from '@/types/database'
 import { format, parseISO } from 'date-fns'
-import { Receipt, BellRing, CreditCard, Filter } from 'lucide-react'
+import { Receipt, BellRing, CreditCard, Filter, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import PaymentModal from '@/components/payment/PaymentModal'
@@ -60,9 +60,7 @@ export default function TransactionList({ entries, profile }: Props) {
   const filteredEntries = entries.filter((e) => {
     if (filter === 'all') return true
     
-    // An entry can be structurally marked paid via description tag or status field
-    // (If the backend eventually adds e.status === 'paid', include it here)
-    const isEntryPaid = e.description && e.description.includes('[PAID]')
+    const isEntryPaid = e.status === 'paid' || (e.description && e.description.includes('[PAID]'))
     
     const key = e.profiles?.full_name || e.person_name
     const net = contactNet.get(key) || 0
@@ -130,6 +128,7 @@ export default function TransactionList({ entries, profile }: Props) {
               <tbody className="divide-y divide-gray-100">
                 {filteredEntries.map((entry) => {
                   const isOwedToMe = entry.type === 'debt'
+                  const isPaid = entry.status === 'paid' || (entry.description && entry.description.includes('[PAID]'))
                   return (
                     <tr
                       key={entry.id}
@@ -176,7 +175,11 @@ export default function TransactionList({ entries, profile }: Props) {
 
                       {/* Action */}
                       <td className="px-6 py-4 text-right whitespace-nowrap">
-                        {isOwedToMe ? (
+                        {isPaid ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                            <CheckCircle2 size={12} /> Completed
+                          </span>
+                        ) : isOwedToMe ? (
                           <button
                             onClick={(e) => handleAction(e, entry, 'remind')}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold transition-colors"

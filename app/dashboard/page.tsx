@@ -32,6 +32,7 @@ export default async function DashboardPage() {
     .from('ledger')
     .select('*')
     .eq('user_id', user.id)
+    .neq('status', 'paid')
     .order('created_at', { ascending: false })
 
   let initialEntries = rawEntries || []

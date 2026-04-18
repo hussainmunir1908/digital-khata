@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 /**
@@ -41,6 +42,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${plusJakartaSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-gray-900">
         {children}
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

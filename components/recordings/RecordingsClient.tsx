@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mic, Square, Loader2, CheckCircle, RefreshCw, X } from 'lucide-react'
-import RecordingsList from './RecordingsList'
-import InsightsPanel from './InsightsPanel'
 
 type ParsedVoiceEntry = {
   transcription: string
@@ -154,41 +152,33 @@ export default function RecordingsClient() {
 
   return (
     <>
-      {/* ── Existing header — unchanged ── */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      {/* ── Centered record UI ── */}
+      <div className="flex flex-col items-center justify-center text-center py-24 gap-8">
         <div className="space-y-2">
-          <span className="text-xs font-semibold tracking-widest uppercase text-blue-600 dark:text-blue-400">
+          <span className="text-xs font-semibold tracking-widest uppercase text-blue-600">
             Voice Ledger
           </span>
           <h1
-            className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-800 dark:text-slate-100"
+            className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-800"
             style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
           >
-            Voice Recordings
+            Voice Recording
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 max-w-xl text-lg leading-relaxed">
-            Instantly transform spoken transactions into structured ledger entries using AI transcription and categorization.
+          <p className="text-slate-500 max-w-sm text-base leading-relaxed mx-auto">
+            Tap the button and speak your transaction. AI will parse it into a ledger entry instantly.
           </p>
         </div>
-        <div>
-          <button
-            onClick={openModal}
-            className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
-          >
-            <Mic size={20} className="fill-current" />
-            <span>Start New Recording</span>
-          </button>
-        </div>
-      </header>
 
-      {/* ── Existing layout grid — unchanged ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8">
-          <RecordingsList />
-        </div>
-        <div className="lg:col-span-4">
-          <InsightsPanel />
-        </div>
+        {/* Big record button */}
+        <button
+          onClick={openModal}
+          className="group relative w-28 h-28 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-xl shadow-blue-600/30 transition-all active:scale-95 hover:scale-105"
+        >
+          <span className="absolute inset-0 rounded-full bg-blue-500/40 animate-ping group-hover:animate-none" />
+          <Mic size={40} className="relative z-10" />
+        </button>
+
+        <p className="text-sm text-slate-400 font-medium">Tap to record</p>
       </div>
 
       {/* ── Recording Modal ── */}

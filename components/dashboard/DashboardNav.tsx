@@ -14,6 +14,8 @@ import { signOut } from '@/app/actions/auth'
 import { Search, Bell, Settings, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
+const supabase = createClient()
+
 const NAV_ITEMS = [
   { label: 'Overview', href: '/dashboard' },
   { label: 'Ledger',   href: '/ledger' },
@@ -31,28 +33,47 @@ export default function DashboardNav({ displayName }: Props) {
 
   // ── Notifications ──────────────────────────────────────────
   const [unreadCount, setUnreadCount] = useState(0)
-  const supabase = createClient()
 
   useEffect(() => {
-    async function checkNotifications() {
-      const { count } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_read', false)
-      
-      if (count !== null) setUnreadCount(count)
+    let canceled = false
+    let channel: ReturnType<typeof supabase.channel> | null = null
+
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || canceled) return
+
+      const userId = user.id
+
+      async function checkNotifications() {
+        if (canceled) return
+        const { count } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('is_read', false)
+        if (count !== null && !canceled) setUnreadCount(count)
+      }
+
+      checkNotifications()
+
+      channel = supabase
+        .channel(`nav-notifications-${userId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+          checkNotifications()
+        })
+        .subscribe()
     }
-    checkNotifications()
 
-    const channel = supabase
-      .channel('nav-notifications')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
-        checkNotifications()
-      })
-      .subscribe()
+    init()
 
-    return () => { supabase.removeChannel(channel) }
-  }, [supabase])
+    return () => {
+      canceled = true
+      if (channel) {
+        supabase.removeChannel(channel)
+        channel = null
+      }
+    }
+  }, [])
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {

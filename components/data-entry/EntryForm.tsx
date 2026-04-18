@@ -489,19 +489,18 @@ export default function EntryForm({ userId }: EntryFormProps) {
 
             </CardContent>
 
-            <CardFooter className="flex gap-3 pt-0 bg-transparent border-0">
+            <CardFooter className="flex gap-3 px-6 pb-6 pt-4 bg-transparent border-0">
               <button
                 type="button"
                 onClick={() => router.push('/dashboard')}
-                className="flex-1 h-11 rounded-xl text-sm font-semibold text-slate-600 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-white/10 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-white/10 transition-all"
+                className="flex-1 h-11 rounded-xl text-sm font-semibold text-slate-600 ring-1 ring-slate-200 bg-white hover:bg-slate-50 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 h-11 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60 disabled:pointer-events-none"
-                style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}
+                className="flex-1 h-11 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60 disabled:pointer-events-none shadow-sm"
               >
                 {loading ? (
                   <Loader2 size={16} className="animate-spin" />

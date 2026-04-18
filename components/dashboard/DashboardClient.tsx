@@ -37,7 +37,11 @@ export default function DashboardClient({ profile, initialEntries }: DashboardCl
             toast.success('New transaction logged!')
           } else if (payload.eventType === 'UPDATE') {
             const updated = payload.new as LedgerEntry
-            setEntries((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+            if (updated.status === 'paid') {
+              setEntries((prev) => prev.filter((e) => e.id !== updated.id))
+            } else {
+              setEntries((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+            }
           } else if (payload.eventType === 'DELETE') {
             setEntries((prev) => prev.filter((e) => e.id !== payload.old.id))
           }
