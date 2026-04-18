@@ -14,6 +14,8 @@
 import Navbar from '@/components/landing/Navbar'
 import HeroSection from '@/components/landing/HeroSection'
 import FeaturesSection from '@/components/landing/FeaturesSection'
+import ScrollytellingSection from '@/components/landing/ScrollytellingSection'
+import TeamSection from '@/components/landing/TeamSection'
 import Footer from '@/components/landing/Footer'
 import { Toaster } from 'sonner'
 
@@ -27,11 +29,17 @@ export default function Home() {
       <Navbar />
 
       <main>
-        {/* Hero: headline + email CTA + phone mockup */}
-        <HeroSection />
+        {/* Mobile/tablet only — hidden on desktop where scrollytelling takes over */}
+        <div className="lg:hidden">
+          <HeroSection />
+          <FeaturesSection />
+        </div>
 
-        {/* Product features */}
-        <FeaturesSection />
+        {/* Desktop-only Apple-style scrollytelling */}
+        <ScrollytellingSection />
+
+        {/* Team section — visible on all breakpoints */}
+        <TeamSection />
       </main>
 
       {/* Site footer */}
