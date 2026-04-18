@@ -1,11 +1,11 @@
 'use client'
 
 /**
- * DashboardNav — Shared glassmorphic top navbar for all dashboard pages.
+ * DashboardNav — Sleek Top Header Navigation
  * Features:
- *  - Avatar dropdown with Settings + Sign Out options
- *  - Outside-click closes dropdown
- *  - Active nav item derived from usePathname()
+ *  - Fixed, solid white background with bottom border
+ *  - Core navigation [Overview, Ledger, Scanner, Recordings]
+ *  - Account dropdown menu
  */
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -26,7 +26,6 @@ export default function DashboardNav({ displayName }: Props) {
   const pathname = usePathname()
   const initial  = displayName.charAt(0).toUpperCase()
 
-
   // ── Account dropdown ───────────────────────────────────────
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -42,14 +41,14 @@ export default function DashboardNav({ displayName }: Props) {
   }, [])
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4">
-      <div className="flex items-center justify-between max-w-7xl mx-auto px-8 py-3 rounded-full glass-border shadow-[0_20px_40px_rgba(44,52,55,0.06)] bg-white/70 dark:bg-slate-800/70 backdrop-blur-2xl transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      <div className="flex items-center justify-between max-w-7xl mx-auto px-6 py-3">
 
         {/* ── Brand + Nav ── */}
         <div className="flex items-center gap-8">
           <Link
             href="/"
-            className="text-2xl font-black text-blue-700 dark:text-blue-400 tracking-tight hover:opacity-80 transition-opacity"
+            className="text-2xl font-black text-blue-600 tracking-tight hover:opacity-80 transition-opacity"
             style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
           >
             Khata
@@ -62,10 +61,10 @@ export default function DashboardNav({ displayName }: Props) {
                 <Link
                   key={href}
                   href={href}
-                  className={`px-3 py-1 text-sm font-semibold transition-all ${
+                  className={`px-3 py-1.5 text-sm font-semibold transition-all ${
                     active
-                      ? 'text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 rounded-none pb-0.5'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-white/40 dark:hover:bg-white/10 rounded-full'
+                      ? 'text-blue-600 border-b-2 border-blue-600 rounded-none'
+                      : 'text-gray-600 hover:bg-gray-100 rounded-lg'
                   }`}
                 >
                   {label}
@@ -76,49 +75,48 @@ export default function DashboardNav({ displayName }: Props) {
         </div>
 
         {/* ── Right actions ── */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="hidden md:flex items-center rounded-full px-4 py-1.5 gap-2 glass-border bg-white/40 dark:bg-white/5 backdrop-blur-md">
-            <Search size={15} className="text-slate-500 dark:text-slate-400 shrink-0" />
+          <div className="hidden md:flex items-center rounded-lg px-4 py-2 gap-2 bg-gray-50 border border-gray-200">
+            <Search size={15} className="text-gray-400 shrink-0" />
             <input
-              className="bg-transparent border-none outline-none text-sm w-44 text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500"
+              className="bg-transparent border-none outline-none text-sm w-44 text-gray-800 placeholder-gray-400"
               placeholder="Search transactions..."
               type="text"
             />
           </div>
 
           {/* Notifications */}
-          <button className="p-2 text-slate-500 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-white/10 rounded-full transition-all">
+          <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
             <Bell size={18} />
           </button>
-
 
           {/* ── Avatar + dropdown ── */}
           <div ref={dropdownRef} className="relative">
             <button
               onClick={() => setOpen((v) => !v)}
               aria-label="Account menu"
-              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center border-2 border-white/60 shadow-sm transition-colors"
+              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center justify-center transition-colors focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
             >
               {initial}
             </button>
 
             {/* Dropdown panel */}
             {open && (
-              <div className="absolute right-0 top-[3.25rem] w-52 rounded-2xl glass-border shadow-2xl overflow-hidden z-50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-2xl">
+              <div className="absolute right-0 top-12 w-52 bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden z-50">
                 {/* User info */}
-                <div className="px-4 py-3.5 border-b border-slate-100 dark:border-white/10">
-                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5">
+                <div className="px-4 py-3.5 border-b border-gray-100 bg-gray-50">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-0.5">
                     Signed in as
                   </p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  <p className="text-sm font-semibold text-gray-800 truncate">
                     {displayName}
                   </p>
                 </div>
 
                 {/* Menu items */}
                 <div className="p-1.5 space-y-0.5">
-                  <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left">
+                  <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors text-left">
                     <Settings size={15} className="shrink-0" />
                     Settings
                   </button>
@@ -126,7 +124,7 @@ export default function DashboardNav({ displayName }: Props) {
                   <form action={signOut} className="w-full">
                     <button
                       type="submit"
-                      className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors text-left"
                     >
                       <LogOut size={15} className="shrink-0" />
                       Sign Out

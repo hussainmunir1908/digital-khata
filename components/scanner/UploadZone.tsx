@@ -90,7 +90,7 @@ export default function UploadZone() {
   }
 
   return (
-    <div className="rounded-3xl overflow-hidden glass-border shadow-xl bg-white/65 dark:bg-slate-800/60 backdrop-blur-2xl transition-colors duration-300">
+    <div className="rounded-2xl overflow-hidden bg-white border border-gray-200 shadow-sm transition-colors duration-300">
 
       {/* Drop zone / preview area — unchanged */}
       {!preview ? (
@@ -155,7 +155,7 @@ export default function UploadZone() {
               fileRef.current.click()
             }
           }}
-          className="flex-1 flex items-center justify-center gap-3 font-bold py-4 rounded-2xl glass-border hover:bg-white/60 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 hover:scale-[1.02] active:scale-95 transition-all bg-white/40 dark:bg-white/5"
+          className="flex-1 flex items-center justify-center gap-3 font-bold py-4 rounded-2xl bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100 hover:scale-[1.02] active:scale-95 transition-all shadow-sm"
         >
           <ImagePlus size={20} />
           Upload from Gallery
@@ -179,7 +179,7 @@ export default function UploadZone() {
       {/* Error state */}
       {error && (
         <div className="px-6 pb-6">
-          <p className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl px-4 py-3 text-center">
+          <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-3 text-center">
             {error}
           </p>
         </div>
@@ -188,17 +188,17 @@ export default function UploadZone() {
       {/* Result card */}
       {parsedResult && (
         <div className="px-6 pb-6 space-y-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl px-4 py-4 space-y-3">
+          <div className="bg-gray-50 border border-gray-100 rounded-2xl px-4 py-4 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+              <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
                 Receipt from
               </p>
-              <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full capitalize">
+              <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full capitalize">
                 {parsedResult.category}
               </span>
             </div>
 
-            <p className="font-bold text-slate-800 dark:text-slate-100 text-lg">
+            <p className="font-bold text-gray-800 text-lg">
               {parsedResult.shop_name}
             </p>
 
@@ -206,18 +206,18 @@ export default function UploadZone() {
             <div className="space-y-1.5">
               {parsedResult.items.map((item, i) => (
                 <div key={i} className="flex justify-between text-sm">
-                  <span className="text-slate-600 dark:text-slate-300">• {item.item}</span>
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">
-                    Rs {item.price.toLocaleString()}
+                  <span className="text-gray-600">• {item.item}</span>
+                  <span className="font-semibold text-gray-700">
+                    <span className="text-[11px] font-bold">Rs</span> {item.price.toLocaleString()}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t border-blue-200 dark:border-blue-800 pt-2 flex justify-between items-center">
-              <span className="font-bold text-slate-700 dark:text-slate-200">Total</span>
-              <span className="font-bold text-slate-800 dark:text-slate-100 text-lg">
-                Rs {parsedResult.total_amount.toLocaleString()}
+            <div className="border-t border-gray-200 pt-2 flex justify-between items-center">
+              <span className="font-bold text-gray-700">Total</span>
+              <span className="font-bold text-gray-900 text-lg">
+                <span className="text-xs font-bold">Rs</span> {parsedResult.total_amount.toLocaleString()}
               </span>
             </div>
           </div>
@@ -226,14 +226,14 @@ export default function UploadZone() {
           <div className="flex gap-3">
             <button
               onClick={handleConfirm}
-              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition-all active:scale-95 shadow-md shadow-blue-200"
+              className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition-all active:scale-95 shadow-sm"
             >
               <CheckCircle size={18} />
               Confirm &amp; Add
             </button>
             <button
               onClick={clearPreview}
-              className="flex-1 flex items-center justify-center gap-2 font-bold py-3.5 rounded-2xl transition-all active:scale-95 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600"
+              className="flex-1 flex items-center justify-center gap-2 font-bold py-3.5 rounded-2xl transition-all active:scale-95 bg-gray-100 text-gray-700 hover:bg-gray-200"
             >
               <RefreshCw size={18} />
               Scan Again

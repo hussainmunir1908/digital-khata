@@ -10,10 +10,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Plus, LayoutGrid, TrendingUp, Wallet, User } from 'lucide-react'
 import DashboardClient from '@/components/dashboard/DashboardClient'
 import DashboardNav from '@/components/dashboard/DashboardNav'
 import FabMenu from '@/components/dashboard/FabMenu'
+import MobileNav from '@/components/dashboard/MobileNav'
 import { Profile, LedgerEntry } from '@/types/database'
 
 export default async function DashboardPage() {
@@ -37,9 +37,7 @@ export default async function DashboardPage() {
   const displayName = profile?.full_name || user.email || 'User'
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 relative overflow-x-hidden transition-colors duration-300">
-      {/* Grain/noise texture overlay */}
-      <div className="grain-overlay fixed inset-0 -z-10" aria-hidden="true" />
+    <div className="min-h-screen bg-gray-50 relative overflow-x-hidden text-gray-800">
 
       {/* ── Shared top navbar ── */}
       <DashboardNav displayName={displayName} />
@@ -55,33 +53,7 @@ export default async function DashboardPage() {
       {/* ── FAB with dropdown menu ── */}
       <FabMenu />
 
-      {/* ── Mobile Bottom Nav ── */}
-      <footer
-        className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-6 pt-2 rounded-t-[3rem] shadow-[0_-10px_40px_rgba(0,0,0,0.04)] glass-border"
-        style={{ background: 'rgba(255,255,255,0.30)', backdropFilter: 'blur(24px)' }}
-      >
-        {(
-          [
-            { icon: LayoutGrid, label: 'Home', href: '/dashboard', active: true },
-            { icon: TrendingUp, label: 'Ledger', href: '/ledger', active: false },
-            { icon: Wallet, label: 'Wallets', href: '#', active: false },
-            { icon: User, label: 'Profile', href: '#', active: false },
-          ] as const
-        ).map(({ icon: Icon, label, href, active }) => (
-          <Link
-            key={label}
-            href={href}
-            className={`flex flex-col items-center justify-center p-3 rounded-full transition-all duration-300 ${
-              active
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/40 scale-110'
-                : 'text-slate-500 hover:text-blue-500'
-            }`}
-          >
-            <Icon size={20} />
-            <span className="text-[11px] font-bold uppercase tracking-widest mt-1">{label}</span>
-          </Link>
-        ))}
-      </footer>
+      <MobileNav />
     </div>
   )
 }

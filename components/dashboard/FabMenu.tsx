@@ -58,7 +58,7 @@ export default function FabMenu() {
   }, [])
 
   return (
-    <div ref={containerRef} className="fixed bottom-8 right-8 z-50 flex flex-col items-end gap-3">
+    <div ref={containerRef} className="fixed bottom-24 md:bottom-8 right-6 md:right-8 z-50 flex flex-col items-end gap-3">
 
       {/* ── Pop-up menu items ── */}
       <div
@@ -74,16 +74,16 @@ export default function FabMenu() {
             key={href}
             href={href}
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 pr-4 pl-3 py-2.5 rounded-2xl bg-white dark:bg-slate-800 shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.4)] ring-1 ring-slate-200/60 dark:ring-white/10 hover:scale-105 active:scale-95 transition-all group"
+            className="flex items-center gap-3 pr-4 pl-3 py-2.5 rounded-2xl bg-white shadow-sm border border-gray-200 hover:border-gray-300 hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all group"
           >
-            <span className={`w-8 h-8 flex items-center justify-center rounded-xl ${color} text-white shrink-0`}>
+            <span className={`w-8 h-8 flex items-center justify-center rounded-xl ${color} text-white shrink-0 shadow-sm`}>
               <Icon size={16} />
             </span>
             <span className="text-right">
-              <span className="block text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <span className="block text-sm font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
                 {label}
               </span>
-              <span className="block text-xs text-slate-400 dark:text-slate-500">{desc}</span>
+              <span className="block text-[11px] font-medium text-gray-400">{desc}</span>
             </span>
           </Link>
         ))}
@@ -94,8 +94,8 @@ export default function FabMenu() {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close menu' : 'Add entry'}
         aria-expanded={open}
-        className="w-16 h-16 text-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(59,130,246,0.4)] hover:scale-110 active:scale-95 transition-all group relative"
-        style={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)' }}
+        className="w-14 h-14 md:w-16 md:h-16 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-600/30 hover:scale-110 active:scale-95 transition-all group relative border border-blue-400/20"
+        style={{ background: '#2563EB' }}
       >
         <Plus
           size={28}

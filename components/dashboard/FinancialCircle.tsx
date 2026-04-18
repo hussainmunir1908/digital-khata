@@ -1,26 +1,25 @@
 /**
  * FinancialCircle — 2×2 grid of debt contact cards.
- * Matches the HTML reference "Financial Circle" section (left col, 7 cols).
- * Groups ledger entries by entity and shows net debt per contact.
+ * Updated to Professional SaaS styling: clean grids, borders, and 'Send Reminder' text link.
  */
 import { LedgerEntry } from '@/types/database'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, BellRing } from 'lucide-react'
 
 type Props = { entries: LedgerEntry[] }
 
-const AVATAR_GRADIENTS = [
-  'from-blue-400 to-blue-600',
-  'from-violet-400 to-purple-600',
-  'from-rose-400 to-pink-600',
-  'from-amber-400 to-orange-500',
-  'from-emerald-400 to-teal-600',
-  'from-cyan-400 to-sky-600',
+const AVATAR_COLORS = [
+  'bg-blue-100 text-blue-700',
+  'bg-purple-100 text-purple-700',
+  'bg-pink-100 text-pink-700',
+  'bg-orange-100 text-orange-700',
+  'bg-emerald-100 text-emerald-700',
+  'bg-sky-100 text-sky-700',
 ]
 
-function gradient(name: string) {
+function getAvatarColor(name: string) {
   let h = 0
   for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h)
-  return AVATAR_GRADIENTS[Math.abs(h) % AVATAR_GRADIENTS.length]
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
 }
 
 export default function FinancialCircle({ entries }: Props) {
@@ -42,53 +41,63 @@ export default function FinancialCircle({ entries }: Props) {
     <div className="space-y-5">
       <div className="flex items-center justify-between px-1">
         <h2
-          className="text-2xl font-bold text-slate-800 tracking-tight"
+          className="text-xl font-bold text-gray-800 tracking-tight"
           style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
         >
           Financial Circle
         </h2>
-        <button className="text-blue-600 text-sm font-bold flex items-center gap-1 hover:gap-2 transition-all">
+        <button className="text-blue-600 text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
           View All <ArrowRight size={14} />
         </button>
       </div>
 
       {people.length === 0 ? (
-        <div className="rounded-2xl p-10 text-center glass-border bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl">
-          <p className="text-slate-500 text-sm">No contacts yet. Add a ledger entry to build your Financial Circle.</p>
+        <div className="rounded-xl p-10 text-center bg-white border border-gray-200 shadow-sm">
+          <p className="text-gray-500 text-sm">No contacts yet. Add a ledger entry to build your Financial Circle.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {people.map(({ name, net }) => {
             const owesMe = net > 0
             const settled = net === 0
+            
             return (
               <div
                 key={name}
-                className="p-6 rounded-2xl glass-border hover:-translate-y-1 transition-all duration-300 cursor-pointer group bg-white/30 dark:bg-slate-800/40 backdrop-blur-xl"
+                className="flex flex-col justify-between p-5 rounded-xl bg-white border border-gray-200 shadow-sm hover:border-gray-300 transition-colors"
               >
-                <div className="flex items-center gap-4">
-                  {/* Letter avatar */}
-                  <div
-                    className={`w-12 h-12 rounded-full bg-gradient-to-br ${gradient(name)} flex items-center justify-center text-white font-bold text-lg shadow-sm border-2 border-white/50 shrink-0`}
-                  >
-                    {name.charAt(0).toUpperCase()}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${getAvatarColor(name)}`}
+                    >
+                      {name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 truncate pr-2">
+                      <h3 className="font-bold text-gray-900 truncate">{name}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {settled ? 'Settled' : owesMe ? 'Owes you' : 'You owe'}
+                      </p>
+                    </div>
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-slate-800 truncate">{name}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {settled ? 'all settled up' : owesMe ? 'owes you' : 'you owe'}
-                    </p>
+                  <div className="text-right shrink-0">
+                    <span
+                      className={`font-extrabold tabular-nums ${
+                        settled ? 'text-gray-400' : owesMe ? 'text-emerald-600' : 'text-red-500'
+                      }`}
+                      style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
+                    >
+                      <span className="text-xs">Rs</span> {Math.abs(net).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                    </span>
                   </div>
+                </div>
 
-                  <span
-                    className={`font-extrabold text-lg tabular-nums shrink-0 ${
-                      settled ? 'text-slate-400' : owesMe ? 'text-emerald-600' : 'text-red-500'
-                    }`}
-                    style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
-                  >
-                    Rs {Math.abs(net).toLocaleString('en-US', { minimumFractionDigits: 0 })}
-                  </span>
+                {/* Fixed "Send Reminder" link text requested in the prompt */}
+                <div className="mt-auto border-t border-gray-100 pt-3">
+                  <button className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors">
+                    <BellRing size={12} />
+                    Send Reminder
+                  </button>
                 </div>
               </div>
             )

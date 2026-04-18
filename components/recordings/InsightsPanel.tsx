@@ -7,9 +7,9 @@ import { Zap } from 'lucide-react'
 
 export default function InsightsPanel() {
   return (
-    <div className="space-y-8">
+    <div className="w-full space-y-8">
       {/* Insight Card */}
-      <div className="bg-blue-600 text-white p-8 rounded-2xl relative overflow-hidden shadow-lg shadow-blue-500/20">
+      <div className="bg-blue-600 text-white p-8 rounded-xl w-full relative overflow-hidden shadow-sm border border-blue-500 transition-all">
         <div className="relative z-10">
           <h3
             className="text-xl font-bold mb-2"

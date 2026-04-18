@@ -35,7 +35,7 @@ export default async function EntryPage() {
   const displayName = profile?.full_name || user.email || 'User'
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-50 relative overflow-x-hidden text-gray-800">
       <Toaster position="top-right" richColors />
       <DashboardNav displayName={displayName} />
 
@@ -49,6 +49,6 @@ export default async function EntryPage() {
       >
         <EntryForm userId={user.id} />
       </Suspense>
-    </>
+    </div>
   )
 }

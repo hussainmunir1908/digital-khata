@@ -17,10 +17,7 @@ export default function ScannerClient({ userId }: Props) {
   return (
     <div className="space-y-5">
       {/* Tab switcher */}
-      <div
-        className="flex items-center gap-1 p-1 rounded-2xl w-fit glass-border"
-        style={{ background: 'rgba(255,255,255,0.60)', backdropFilter: 'blur(16px)' }}
-      >
+      <div className="flex items-center gap-1 p-1 rounded-2xl w-fit bg-white border border-gray-200 shadow-sm">
         {([
           { key: 'scan',   label: 'Scan Receipt', icon: ScanLine },
           { key: 'manual', label: 'Manual Entry',  icon: PencilLine },
@@ -30,8 +27,8 @@ export default function ScannerClient({ userId }: Props) {
             onClick={() => setTab(key)}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
               tab === key
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-500 hover:text-gray-800'
             }`}
           >
             <Icon size={15} />
