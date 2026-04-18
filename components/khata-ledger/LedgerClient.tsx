@@ -50,8 +50,8 @@ export default function LedgerClient({ profile, initialEntries }: Props) {
 
   return (
     <div className="space-y-10">
-      <ContactCircleCards entries={entries} />
-      <TransactionList entries={entries} />
+      <ContactCircleCards entries={entries} profile={profile} />
+      <TransactionList entries={entries} profile={profile} />
     </div>
   )
 }

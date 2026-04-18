@@ -12,12 +12,11 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { signOut } from '@/app/actions/auth'
 import { Search, Bell, Settings, LogOut } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/dashboard' },
   { label: 'Ledger',   href: '/ledger' },
-  { label: 'Scanner',  href: '/scanner' },
-  { label: 'Recordings', href: '/recordings' },
 ]
 
 type Props = { displayName: string }
@@ -29,6 +28,31 @@ export default function DashboardNav({ displayName }: Props) {
   // ── Account dropdown ───────────────────────────────────────
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // ── Notifications ──────────────────────────────────────────
+  const [unreadCount, setUnreadCount] = useState(0)
+  const supabase = createClient()
+
+  useEffect(() => {
+    async function checkNotifications() {
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_read', false)
+      
+      if (count !== null) setUnreadCount(count)
+    }
+    checkNotifications()
+
+    const channel = supabase
+      .channel('nav-notifications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+        checkNotifications()
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [supabase])
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -87,9 +111,12 @@ export default function DashboardNav({ displayName }: Props) {
           </div>
 
           {/* Notifications */}
-          <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+          <Link href="/notifications" className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors inline-block">
             <Bell size={18} />
-          </button>
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+            )}
+          </Link>
 
           {/* ── Avatar + dropdown ── */}
           <div ref={dropdownRef} className="relative">

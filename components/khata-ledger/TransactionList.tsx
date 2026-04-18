@@ -1,18 +1,105 @@
 'use client'
 
-import { LedgerEntry } from '@/types/database'
+import { LedgerEntry, Profile } from '@/types/database'
 import { format, parseISO } from 'date-fns'
-import { Receipt } from 'lucide-react'
+import { Receipt, BellRing, CreditCard, Filter } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
+import PaymentModal from '@/components/payment/PaymentModal'
+import { useState } from 'react'
 
-type Props = { entries: LedgerEntry[] }
+type Props = { 
+  entries: LedgerEntry[]
+  profile: Profile | null
+}
 
-export default function TransactionList({ entries }: Props) {
+export default function TransactionList({ entries, profile }: Props) {
+  const supabase = createClient()
+  const [payingEntryId, setPayingEntryId] = useState<string | null>(null)
+  const [filter, setFilter] = useState<'all' | 'pending' | 'paid'>('all')
+
+  async function handleAction(e: React.MouseEvent, entry: LedgerEntry, action: 'remind' | 'pay') {
+    e.preventDefault()
+    if (action === 'pay') {
+      setPayingEntryId(entry.id)
+      return
+    }
+
+    if (!entry.associated_user_id) {
+      toast.error('User not registered yet.')
+      return
+    }
+    if (!profile) {
+      toast.error('Complete your profile to use this feature.')
+      return
+    }
+
+    const { error } = await supabase.from('notifications').insert({
+      user_id: entry.associated_user_id,
+      sender_id: profile.id,
+      ledger_id: entry.id,
+      type: 'reminder',
+      message: `${profile.full_name || 'Someone'} has reminded you to settle a balance of Rs ${entry.amount}.`,
+    })
+
+    if (error) {
+      toast.error(`Failed to send reminder: ${error.message}`)
+    } else {
+      toast.success('Reminder sent!')
+    }
+  }
+  // To track Pending vs Paid, we compute a per-user net balance
+  const contactNet = new Map<string, number>()
+  entries.forEach(e => {
+    const key = e.profiles?.full_name || e.person_name
+    const cur = contactNet.get(key) || 0
+    contactNet.set(key, cur + (e.type === 'debt' ? Number(e.amount) : -Number(e.amount)))
+  })
+
+  // Filter entries based on the current tab
+  const filteredEntries = entries.filter((e) => {
+    if (filter === 'all') return true
+    
+    // An entry can be structurally marked paid via description tag or status field
+    // (If the backend eventually adds e.status === 'paid', include it here)
+    const isEntryPaid = e.description && e.description.includes('[PAID]')
+    
+    const key = e.profiles?.full_name || e.person_name
+    const net = contactNet.get(key) || 0
+    const isContactPaid = Math.abs(net) <= 0.01
+
+    if (filter === 'pending') return !isEntryPaid && !isContactPaid // not settled at all
+    if (filter === 'paid') return isEntryPaid || isContactPaid // individually settled, or person is overall paid off
+    return true
+  })
+
   return (
-    <section>
-      <h2 className="text-lg font-bold text-gray-800 mb-4">All Transactions</h2>
+    <section className="relative">
+      <PaymentModal entryId={payingEntryId} onClose={() => setPayingEntryId(null)} />
+      
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+        <h2 className="text-lg font-bold text-gray-800">All Transactions</h2>
+        
+        {/* Tabs */}
+        <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+          {(['all', 'pending', 'paid'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setFilter(t)}
+              className={`flex-1 sm:flex-none uppercase tracking-widest text-[10px] font-bold px-4 py-2 rounded-lg transition-all ${
+                filter === t 
+                  ? 'bg-white shadow-sm text-slate-800' 
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="rounded-xl overflow-hidden bg-white border border-gray-200 shadow-sm">
-        {entries.length === 0 ? (
+        {filteredEntries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center px-6">
             <Receipt className="text-slate-300 mb-3" size={40} />
             <p className="font-semibold text-slate-500">No transactions yet.</p>
@@ -35,10 +122,13 @@ export default function TransactionList({ entries }: Props) {
                   <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">
                     Amount
                   </th>
+                  <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {entries.map((entry) => {
+                {filteredEntries.map((entry) => {
                   const isOwedToMe = entry.type === 'debt'
                   return (
                     <tr
@@ -66,9 +156,11 @@ export default function TransactionList({ entries }: Props) {
                           <div
                             className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-100 text-blue-700 text-xs font-bold shrink-0"
                           >
-                            {entry.person_name.charAt(0).toUpperCase()}
+                            {(entry.profiles?.full_name || entry.person_name).charAt(0).toUpperCase()}
                           </div>
-                          <span className="font-medium text-gray-800 truncate">{entry.person_name}</span>
+                          <span className="font-medium text-gray-800 truncate">
+                            {entry.profiles?.full_name || entry.person_name}
+                          </span>
                         </div>
                       </td>
 
@@ -78,8 +170,27 @@ export default function TransactionList({ entries }: Props) {
                           {isOwedToMe ? '+' : '−'} <span className="text-xs">Rs</span> {Number(entry.amount).toLocaleString()}
                         </span>
                         <span className="block text-xs text-gray-400 mt-0.5">
-                          {isOwedToMe ? 'Owed by' : 'Owed to'} {entry.person_name}
+                          {isOwedToMe ? 'Owed by' : 'Owed to'} {entry.profiles?.full_name || entry.person_name}
                         </span>
+                      </td>
+
+                      {/* Action */}
+                      <td className="px-6 py-4 text-right whitespace-nowrap">
+                        {isOwedToMe ? (
+                          <button
+                            onClick={(e) => handleAction(e, entry, 'remind')}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold transition-colors"
+                          >
+                            <BellRing size={12} /> Send Reminder
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => handleAction(e, entry, 'pay')}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-colors"
+                          >
+                            <CreditCard size={12} /> Pay Now
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )

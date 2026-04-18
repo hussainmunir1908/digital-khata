@@ -53,15 +53,15 @@ export default function DashboardClient({ profile, initialEntries }: DashboardCl
   return (
     <div className="space-y-10">
       {/* Balance Summary — full width hero card */}
-      <BalanceSummary entries={entries} />
+      <BalanceSummary entries={entries} profile={profile} />
 
       {/* Asymmetric grid: Financial Circle (left 7) + Transaction Feed (right 5) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div className="lg:col-span-7">
-          <FinancialCircle entries={entries} />
+          <FinancialCircle entries={entries} profile={profile} />
         </div>
         <aside className="lg:col-span-5">
-          <TransactionFeed entries={entries} />
+          <TransactionFeed entries={entries} profile={profile} />
         </aside>
       </div>
     </div>

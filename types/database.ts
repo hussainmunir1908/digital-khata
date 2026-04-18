@@ -6,6 +6,8 @@ export type LedgerEntry = {
   person_name: string
   description: string | null
   created_at: string
+  associated_user_id?: string | null
+  profiles?: { full_name: string | null } | null
 }
 
 export type Profile = {

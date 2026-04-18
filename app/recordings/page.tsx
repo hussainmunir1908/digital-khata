@@ -6,7 +6,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import DashboardNav from '@/components/dashboard/DashboardNav'
 import MobileNav from '@/components/dashboard/MobileNav'
-import FabMenu from '@/components/dashboard/FabMenu'
 import RecordingsClient from '@/components/recordings/RecordingsClient'
 
 export default async function RecordingsPage() {
@@ -34,8 +33,6 @@ export default async function RecordingsPage() {
       <main className="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto space-y-12 flex-grow">
         <RecordingsClient />
       </main>
-
-      <FabMenu />
 
       <MobileNav />
     </div>

@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import DashboardNav from '@/components/dashboard/DashboardNav'
 import MobileNav from '@/components/dashboard/MobileNav'
-import FabMenu from '@/components/dashboard/FabMenu'
 import ScannerClient from '@/components/scanner/ScannerClient'
 
 export default async function ScannerPage() {
@@ -48,8 +47,6 @@ export default async function ScannerPage() {
 
         <ScannerClient userId={user.id} />
       </main>
-
-      <FabMenu />
 
       <MobileNav />
     </div>

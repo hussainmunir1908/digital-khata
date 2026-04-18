@@ -7,13 +7,12 @@
  */
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, TrendingUp, Mic, ScanLine } from 'lucide-react'
+import { LayoutGrid, TrendingUp, User } from 'lucide-react'
 
 const MOBILE_NAV_ITEMS = [
-  { icon: LayoutGrid, label: 'Home',       href: '/dashboard' },
+  { icon: LayoutGrid, label: 'Overview',   href: '/dashboard' },
   { icon: TrendingUp, label: 'Ledger',     href: '/ledger' },
-  { icon: ScanLine,   label: 'Scanner',    href: '/scanner' },
-  { icon: Mic,        label: 'Recordings', href: '/recordings' },
+  { icon: User,       label: 'Profile',    href: '/dashboard' },
 ]
 
 export default function MobileNav() {

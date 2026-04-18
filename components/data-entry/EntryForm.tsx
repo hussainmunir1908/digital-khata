@@ -107,6 +107,9 @@ export default function EntryForm({ userId }: EntryFormProps) {
       if (data) {
         setAssociatedUserId(data.id)
         setIsVerified(true)
+        if (data.full_name) {
+          setPersonName(data.full_name)
+        }
       }
     },
     [supabase]
@@ -163,12 +166,8 @@ export default function EntryForm({ userId }: EntryFormProps) {
       const hit = unique[0]
       if (hit.counterparty_phone) {
         setPhone(hit.counterparty_phone)
-        if (hit.associated_user_id) {
-          setAssociatedUserId(hit.associated_user_id)
-          setIsVerified(true)
-        } else {
-          await lookupByPhone(hit.counterparty_phone)
-        }
+        // Always hit profiles to ensure we pull the actual verified full_name
+        await lookupByPhone(hit.counterparty_phone)
       } else {
         setPhonePrompt(true)
       }
@@ -187,10 +186,8 @@ export default function EntryForm({ userId }: EntryFormProps) {
       setIsVerified(false)
       setAssociatedUserId(null)
 
-      if (candidate.associated_user_id) {
-        setAssociatedUserId(candidate.associated_user_id)
-        setIsVerified(true)
-      } else if (candidate.counterparty_phone) {
+      if (candidate.counterparty_phone) {
+        // Always hit profiles to ensure we pull the actual verified full_name
         await lookupByPhone(candidate.counterparty_phone)
       } else {
         setPhonePrompt(true)
@@ -232,8 +229,21 @@ export default function EntryForm({ userId }: EntryFormProps) {
       toast.error('Person name is required.')
       return
     }
+    if (!phone.trim()) {
+      toast.error('Phone number is required.')
+      return
+    }
+    if (!description.trim()) {
+      toast.error('Description is required.')
+      return
+    }
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       toast.error('Please enter a valid amount.')
+      return
+    }
+
+    if (!associatedUserId) {
+      toast.error('User does not exist in the database.')
       return
     }
 
@@ -242,9 +252,9 @@ export default function EntryForm({ userId }: EntryFormProps) {
       user_id:             userId,
       amount:              parsedAmount,
       person_name:         personName.trim(),
-      counterparty_phone:  phone.trim() || null,
+      counterparty_phone:  phone.trim(),
       associated_user_id:  associatedUserId ?? null,
-      description:         description.trim() || null,
+      description:         description.trim(),
       type,
     })
     setLoading(false)
@@ -420,7 +430,7 @@ export default function EntryForm({ userId }: EntryFormProps) {
                     {phonePrompt ? (
                       <span className="text-amber-500 font-semibold">— Enter to link account</span>
                     ) : (
-                      '(optional)'
+                      ''
                     )}
                   </span>
                 </label>
@@ -437,6 +447,7 @@ export default function EntryForm({ userId }: EntryFormProps) {
                     }}
                     onBlur={handlePhoneBlur}
                     className={inputBase}
+                    required
                   />
                   {lookingUpPhone && (
                     <Loader2 size={14} className="text-blue-400 animate-spin shrink-0" />
@@ -461,7 +472,7 @@ export default function EntryForm({ userId }: EntryFormProps) {
               {/* Description */}
               <div>
                 <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                  Description <span className="normal-case font-normal">(optional)</span>
+                  Description
                 </label>
                 <div className="flex items-start gap-2 rounded-xl ring-1 ring-slate-200 dark:ring-white/10 bg-white dark:bg-slate-800 px-3 py-2.5 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
                   <FileText size={15} className="text-slate-400 shrink-0 mt-1" />
@@ -471,6 +482,7 @@ export default function EntryForm({ userId }: EntryFormProps) {
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
                     className="flex-1 bg-transparent outline-none border-none text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 resize-none"
+                    required
                   />
                 </div>
               </div>

@@ -44,16 +44,21 @@ export default function RecordingsClient() {
   }
 
   function closeModal() {
-    if (timerRef.current) clearInterval(timerRef.current)
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stream?.getTracks().forEach((t) => t.stop())
-      mediaRecorderRef.current.stop()
-    }
     setShowModal(false)
     setIsRecording(false)
     setIsProcessing(false)
     setParsedEntry(null)
     setError(null)
+    
+    if (timerRef.current) clearInterval(timerRef.current)
+    try {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stream?.getTracks().forEach((t) => t.stop())
+        mediaRecorderRef.current.stop()
+      }
+    } catch (e) {
+      console.warn("Could not cleanly stop trailing media tracks", e)
+    }
   }
 
   async function startRecording() {

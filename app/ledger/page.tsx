@@ -21,11 +21,30 @@ export default async function LedgerPage() {
     .eq('id', user.id)
     .single()
 
-  const { data: initialEntries } = await supabase
+  const { data: rawEntries } = await supabase
     .from('ledger')
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
+
+  let initialEntries = rawEntries || []
+
+  // Fetch exact names for associated users (join fallback)
+  const associatedUserIds = Array.from(new Set(initialEntries.map((e) => e.associated_user_id).filter(Boolean))) as string[]
+  if (associatedUserIds.length > 0) {
+    const { data: relatedProfiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', associatedUserIds)
+
+    if (relatedProfiles) {
+      const profileMap = Object.fromEntries(relatedProfiles.map((p) => [p.id, p]))
+      initialEntries = initialEntries.map((e) => ({
+        ...e,
+        profiles: e.associated_user_id ? profileMap[e.associated_user_id] : null,
+      }))
+    }
+  }
 
   const displayName = profile?.full_name || user.email || 'User'
   const initial = displayName.charAt(0).toUpperCase()

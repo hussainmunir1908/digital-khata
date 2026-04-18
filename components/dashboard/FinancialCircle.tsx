@@ -2,10 +2,17 @@
  * FinancialCircle — 2×2 grid of debt contact cards.
  * Updated to Professional SaaS styling: clean grids, borders, and 'Send Reminder' text link.
  */
-import { LedgerEntry } from '@/types/database'
-import { ArrowRight, BellRing } from 'lucide-react'
+import { LedgerEntry, Profile } from '@/types/database'
+import { ArrowRight, BellRing, CreditCard } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
+import PaymentModal from '@/components/payment/PaymentModal'
+import { useState } from 'react'
 
-type Props = { entries: LedgerEntry[] }
+type Props = { 
+  entries: LedgerEntry[]
+  profile: Profile | null
+}
 
 const AVATAR_COLORS = [
   'bg-blue-100 text-blue-700',
@@ -22,23 +29,64 @@ function getAvatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
 }
 
-export default function FinancialCircle({ entries }: Props) {
+export default function FinancialCircle({ entries, profile }: Props) {
+  const supabase = createClient()
+  const [payingEntryId, setPayingEntryId] = useState<string | null>(null)
+
   // Aggregate by entity
-  const map = new Map<string, { owesMe: number; iOwe: number }>()
+  const map = new Map<string, { owesMe: number; iOwe: number; userId: string | null; entryId: string | null }>()
   entries.forEach((e) => {
-    const cur = map.get(e.person_name) ?? { owesMe: 0, iOwe: 0 }
+    const keyName = e.profiles?.full_name || e.person_name
+    const cur = map.get(keyName) ?? { owesMe: 0, iOwe: 0, userId: null, entryId: null }
     if (e.type === 'debt') cur.owesMe += Number(e.amount)
     else cur.iOwe += Number(e.amount)
-    map.set(e.person_name, cur)
+
+    // Keep the most recent association info
+    if (e.associated_user_id) cur.userId = e.associated_user_id
+    cur.entryId = e.id
+
+    map.set(keyName, cur)
   })
 
   const people = Array.from(map.entries())
-    .map(([name, { owesMe, iOwe }]) => ({ name, net: owesMe - iOwe }))
+    .map(([name, { owesMe, iOwe, userId, entryId }]) => ({ name, net: owesMe - iOwe, userId, entryId }))
     .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
     .slice(0, 4)
 
+  async function handleAction(e: React.MouseEvent, person: typeof people[0], action: 'remind' | 'pay') {
+    e.preventDefault()
+    if (action === 'pay') {
+      if (person.entryId) setPayingEntryId(person.entryId)
+      return
+    }
+
+    if (!person.userId) {
+      toast.error('User not registered yet.')
+      return
+    }
+    if (!profile) {
+      toast.error('Complete your profile to use this feature.')
+      return
+    }
+
+    const { error } = await supabase.from('notifications').insert({
+      user_id: person.userId,
+      sender_id: profile.id,
+      ledger_id: person.entryId, // closest reference
+      type: 'reminder',
+      message: `${profile.full_name || 'Someone'} has reminded you to settle a balance of Rs ${Math.abs(person.net)}.`,
+    })
+
+    if (error) {
+      toast.error(`Failed to send reminder: ${error.message}`)
+    } else {
+      toast.success('Reminder sent!')
+    }
+  }
+
   return (
     <div className="space-y-5">
+      <PaymentModal entryId={payingEntryId} onClose={() => setPayingEntryId(null)} />
       <div className="flex items-center justify-between px-1">
         <h2
           className="text-xl font-bold text-gray-800 tracking-tight"
@@ -57,7 +105,7 @@ export default function FinancialCircle({ entries }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {people.map(({ name, net }) => {
+          {people.map(({ name, net, userId, entryId }) => {
             const owesMe = net > 0
             const settled = net === 0
             
@@ -92,12 +140,26 @@ export default function FinancialCircle({ entries }: Props) {
                   </div>
                 </div>
 
-                {/* Fixed "Send Reminder" link text requested in the prompt */}
-                <div className="mt-auto border-t border-gray-100 pt-3">
-                  <button className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 transition-colors">
-                    <BellRing size={12} />
-                    Send Reminder
-                  </button>
+                <div className="mt-auto border-t border-gray-100 pt-3 flex justify-end">
+                  {!settled && (
+                    owesMe ? (
+                      <button 
+                        onClick={(e) => handleAction(e, { name, net, userId, entryId }, 'remind')}
+                        className="text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors"
+                      >
+                        <BellRing size={12} />
+                        Send Reminder
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={(e) => handleAction(e, { name, net, userId, entryId }, 'pay')}
+                        className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors shadow-sm"
+                      >
+                        <CreditCard size={12} />
+                        Pay Now
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             )
