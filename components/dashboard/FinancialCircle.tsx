@@ -1,13 +1,15 @@
-'use client'
-
+/**
+ * FinancialCircle — 2×2 grid of debt contact cards.
+ * Updated to Professional SaaS styling: clean grids, borders, and 'Send Reminder' text link.
+ */
 import { LedgerEntry, Profile } from '@/types/database'
 import { ArrowRight, BellRing, CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import BulkSettleModal, { BulkContact } from '@/components/payment/BulkSettleModal'
+import PaymentModal from '@/components/payment/PaymentModal'
 import { useState } from 'react'
 
-type Props = {
+type Props = { 
   entries: LedgerEntry[]
   profile: Profile | null
 }
@@ -27,74 +29,64 @@ function getAvatarColor(name: string) {
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
 }
 
-const supabase = createClient()
-
 export default function FinancialCircle({ entries, profile }: Props) {
-  const [payingContact, setPayingContact] = useState<BulkContact | null>(null)
+  const supabase = createClient()
+  const [payingEntryId, setPayingEntryId] = useState<string | null>(null)
 
-  // Aggregate by contact — collect ALL entry IDs so we can settle every one
-  const map = new Map<string, {
-    owesMe: number
-    iOwe: number
-    userId: string | null
-    entryIds: string[]
-    latestEntryId: string | null
-  }>()
-
+  // Aggregate by entity
+  const map = new Map<string, { owesMe: number; iOwe: number; userId: string | null; entryId: string | null }>()
   entries.forEach((e) => {
     const keyName = e.profiles?.full_name || e.person_name
-    const cur = map.get(keyName) ?? { owesMe: 0, iOwe: 0, userId: null, entryIds: [], latestEntryId: null }
+    const cur = map.get(keyName) ?? { owesMe: 0, iOwe: 0, userId: null, entryId: null }
     if (e.type === 'debt') cur.owesMe += Number(e.amount)
     else cur.iOwe += Number(e.amount)
+
+    // Keep the most recent association info
     if (e.associated_user_id) cur.userId = e.associated_user_id
-    cur.entryIds.push(e.id)
-    cur.latestEntryId = e.id
+    cur.entryId = e.id
+
     map.set(keyName, cur)
   })
 
   const people = Array.from(map.entries())
-    .map(([name, { owesMe, iOwe, userId, entryIds, latestEntryId }]) => ({
-      name,
-      net: owesMe - iOwe,
-      userId,
-      entryIds,
-      latestEntryId,
-    }))
+    .map(([name, { owesMe, iOwe, userId, entryId }]) => ({ name, net: owesMe - iOwe, userId, entryId }))
     .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
     .slice(0, 4)
 
   async function handleAction(e: React.MouseEvent, person: typeof people[0], action: 'remind' | 'pay') {
     e.preventDefault()
-
     if (action === 'pay') {
-      setPayingContact({
-        entryIds: person.entryIds,
-        associatedUserId: person.userId,
-        payeeName: person.name,
-        totalAmount: Math.abs(person.net),
-      })
+      if (person.entryId) setPayingEntryId(person.entryId)
       return
     }
 
-    if (!person.userId) { toast.error('User not registered yet.'); return }
-    if (!profile) { toast.error('Complete your profile to use this feature.'); return }
+    if (!person.userId) {
+      toast.error('User not registered yet.')
+      return
+    }
+    if (!profile) {
+      toast.error('Complete your profile to use this feature.')
+      return
+    }
 
     const { error } = await supabase.from('notifications').insert({
-      user_id:   person.userId,
+      user_id: person.userId,
       sender_id: profile.id,
-      ledger_id: person.latestEntryId,
-      type:      'reminder',
-      message:   `${profile.full_name || 'Someone'} has reminded you to settle a balance of Rs ${Math.abs(person.net)}.`,
+      ledger_id: person.entryId, // closest reference
+      type: 'reminder',
+      message: `${profile.full_name || 'Someone'} has reminded you to settle a balance of Rs ${Math.abs(person.net)}.`,
     })
 
-    if (error) toast.error(`Failed to send reminder: ${error.message}`)
-    else toast.success('Reminder sent!')
+    if (error) {
+      toast.error(`Failed to send reminder: ${error.message}`)
+    } else {
+      toast.success('Reminder sent!')
+    }
   }
 
   return (
     <div className="space-y-5">
-      <BulkSettleModal contact={payingContact} onClose={() => setPayingContact(null)} />
-
+      <PaymentModal entryId={payingEntryId} onClose={() => setPayingEntryId(null)} />
       <div className="flex items-center justify-between px-1">
         <h2
           className="text-xl font-bold text-gray-800 tracking-tight"
@@ -113,11 +105,10 @@ export default function FinancialCircle({ entries, profile }: Props) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {people.map((person) => {
-            const { name, net } = person
-            const owesMe  = net > 0
+          {people.map(({ name, net, userId, entryId }) => {
+            const owesMe = net > 0
             const settled = net === 0
-
+            
             return (
               <div
                 key={name}
@@ -125,7 +116,9 @@ export default function FinancialCircle({ entries, profile }: Props) {
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${getAvatarColor(name)}`}>
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${getAvatarColor(name)}`}
+                    >
                       {name.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 truncate pr-2">
@@ -135,29 +128,35 @@ export default function FinancialCircle({ entries, profile }: Props) {
                       </p>
                     </div>
                   </div>
-                  <span
-                    className={`font-extrabold tabular-nums shrink-0 ${settled ? 'text-gray-400' : owesMe ? 'text-emerald-600' : 'text-red-500'}`}
-                    style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
-                  >
-                    <span className="text-xs">Rs</span> {Math.abs(net).toLocaleString('en-US', { minimumFractionDigits: 0 })}
-                  </span>
+                  <div className="text-right shrink-0">
+                    <span
+                      className={`font-extrabold tabular-nums ${
+                        settled ? 'text-gray-400' : owesMe ? 'text-emerald-600' : 'text-red-500'
+                      }`}
+                      style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
+                    >
+                      <span className="text-xs">Rs</span> {Math.abs(net).toLocaleString('en-US', { minimumFractionDigits: 0 })}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="mt-auto border-t border-gray-100 pt-3 flex justify-end">
                   {!settled && (
                     owesMe ? (
-                      <button
-                        onClick={(e) => handleAction(e, person, 'remind')}
+                      <button 
+                        onClick={(e) => handleAction(e, { name, net, userId, entryId }, 'remind')}
                         className="text-xs font-semibold text-gray-600 hover:text-gray-900 border border-gray-200 px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors"
                       >
-                        <BellRing size={12} /> Send Reminder
+                        <BellRing size={12} />
+                        Send Reminder
                       </button>
                     ) : (
-                      <button
-                        onClick={(e) => handleAction(e, person, 'pay')}
+                      <button 
+                        onClick={(e) => handleAction(e, { name, net, userId, entryId }, 'pay')}
                         className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded flex items-center gap-1.5 transition-colors shadow-sm"
                       >
-                        <CreditCard size={12} /> Pay Now
+                        <CreditCard size={12} />
+                        Pay Now
                       </button>
                     )
                   )}
