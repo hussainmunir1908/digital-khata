@@ -7,7 +7,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
-
 app = FastAPI(title="Digital Khata AI Backend")
 
 app.add_middleware(

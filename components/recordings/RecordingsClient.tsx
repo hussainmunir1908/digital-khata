@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Mic, Square, Loader2, CheckCircle, RefreshCw, X } from 'lucide-react'
 import RecordingsList from './RecordingsList'
 import InsightsPanel from './InsightsPanel'
@@ -17,6 +18,7 @@ type ParsedVoiceEntry = {
 }
 
 export default function RecordingsClient() {
+  const router = useRouter()
   const [showModal, setShowModal]       = useState(false)
   const [isRecording, setIsRecording]   = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -123,8 +125,14 @@ export default function RecordingsClient() {
 
   function handleConfirm() {
     if (!parsedEntry) return
-    console.log('Entry ready to log:', parsedEntry)
-    closeModal()
+    const { amount, entity, description, type } = parsedEntry.data
+    const params = new URLSearchParams({
+      amount:      String(amount ?? ''),
+      name:        entity ?? '',
+      desc:        description ?? '',
+      type:        type ?? 'debt',
+    })
+    router.push(`/entryPage?${params.toString()}`)
   }
 
   function handleRecordAgain() {

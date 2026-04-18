@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Camera, ImagePlus, X, CheckCircle, Loader2, ScanLine, RefreshCw } from 'lucide-react'
 
 type ReceiptData = {
@@ -13,6 +14,7 @@ type ReceiptData = {
 }
 
 export default function UploadZone() {
+  const router = useRouter()
   const [preview, setPreview]           = useState<string | null>(null)
   const [scanning, setScanning]         = useState(false)
   const [done, setDone]                 = useState(false)
@@ -78,8 +80,13 @@ export default function UploadZone() {
 
   function handleConfirm() {
     if (!parsedResult) return
-    console.log('Receipt entry ready to log:', parsedResult)
-    clearPreview()
+    const params = new URLSearchParams({
+      amount: String(parsedResult.total_amount ?? ''),
+      name:   parsedResult.shop_name ?? '',
+      desc:   parsedResult.description ?? '',
+      type:   'debt',
+    })
+    router.push(`/entryPage?${params.toString()}`)
   }
 
   return (
