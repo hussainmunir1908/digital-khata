@@ -41,16 +41,26 @@ export default function PaymentModal({ entryId }: { entryId: string | null; onCl
         if (profile?.full_name) payerName = profile.full_name
       }
 
+      // Determine payee:
+      // - If the entry belongs to the current user → person_name is who they're paying
+      // - If the entry belongs to someone else (paying via notification) → that person is the payee
+      let payeeName = entry?.person_name ?? 'Unknown'
+      if (entry && user && entry.user_id !== user.id) {
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', entry.user_id)
+          .single()
+        if (ownerProfile?.full_name) payeeName = ownerProfile.full_name
+      }
+
       await new Promise(r => setTimeout(r, 1800))
       setStage(STAGES[1])
 
       // 2. Mark both sides as paid
       if (entry) {
-        // Mark the entry being paid (current user's side)
         await supabase.from('ledger').update({ status: 'paid' }).eq('id', entryId)
 
-        // Mark the counterpart entry on the other user's ledger
-        // (RLS allows this because associated_user_id = auth.uid() on their entry)
         if (entry.associated_user_id) {
           await supabase
             .from('ledger')
@@ -64,15 +74,14 @@ export default function PaymentModal({ entryId }: { entryId: string | null; onCl
       setStage(STAGES[2])
       await new Promise(r => setTimeout(r, 800))
 
-      // 3. Encode all receipt data in the URL so the receipt page needs zero DB calls
-      const personName = entry?.person_name ?? 'Unknown'
+      // 3. Encode all receipt data in the URL — receipt page needs zero DB calls
       const amount = entry ? String(entry.amount) : '0'
       const description = entry?.description?.replace('[PAID]', '').trim() ?? ''
 
       const params = new URLSearchParams({
         id: entryId!,
         payer: payerName,
-        payee: personName,
+        payee: payeeName,
         amount,
         desc: description,
         ts: new Date().toISOString(),
