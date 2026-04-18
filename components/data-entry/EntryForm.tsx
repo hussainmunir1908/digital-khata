@@ -248,22 +248,44 @@ export default function EntryForm({ userId }: EntryFormProps) {
     }
 
     setLoading(true)
+
     const { error } = await supabase.from('ledger').insert({
-      user_id:             userId,
-      amount:              parsedAmount,
-      person_name:         personName.trim(),
-      counterparty_phone:  phone.trim(),
-      associated_user_id:  associatedUserId ?? null,
-      description:         description.trim(),
+      user_id:            userId,
+      amount:             parsedAmount,
+      person_name:        personName.trim(),
+      counterparty_phone: phone.trim(),
+      associated_user_id: associatedUserId ?? null,
+      description:        description.trim(),
       type,
     })
-    setLoading(false)
 
     if (error) {
+      setLoading(false)
       toast.error(`Failed to save entry: ${error.message}`)
       return
     }
 
+    // Mirror entry: insert the same transaction on the other user's ledger
+    // with the type flipped so their balance reflects the counterpart view.
+    if (associatedUserId) {
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('full_name, phone_number')
+        .eq('id', userId)
+        .single()
+
+      await supabase.from('ledger').insert({
+        user_id:            associatedUserId,
+        amount:             parsedAmount,
+        person_name:        myProfile?.full_name || 'Unknown',
+        counterparty_phone: myProfile?.phone_number || '',
+        associated_user_id: userId,
+        description:        description.trim(),
+        type:               type === 'debt' ? 'credit' : 'debt',
+      })
+    }
+
+    setLoading(false)
     toast.success('Entry saved successfully!')
     router.push('/dashboard')
   }
