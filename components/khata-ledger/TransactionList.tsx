@@ -111,103 +111,129 @@ export default function TransactionList({ entries, profile }: Props) {
             <p className="text-sm text-slate-400 mt-1">Add a ledger entry to get started.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">
-                    Date
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">
-                    Description
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">
-                    Person
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">
-                    Amount
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {pagedEntries.map((entry) => {
-                  const isOwedToMe = entry.type === 'debt'
-                  const isPaid = entry.status === 'paid' || (entry.description && entry.description.includes('[PAID]'))
-                  return (
-                    <tr
-                      key={entry.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      {/* Date */}
-                      <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                        {format(parseISO(entry.created_at), 'MMM d, yyyy')}
-                        <span className="block text-xs text-gray-400 mt-0.5">
-                          {format(parseISO(entry.created_at), 'h:mm a')}
-                        </span>
-                      </td>
-
-                      {/* Description */}
-                      <td className="px-6 py-4 text-gray-700 max-w-[200px]">
-                        <span className="block truncate">
-                          {entry.description || <span className="text-gray-400 italic">No description</span>}
-                        </span>
-                      </td>
-
-                      {/* Person */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-100 text-blue-700 text-xs font-bold shrink-0"
-                          >
-                            {(entry.profiles?.full_name || entry.person_name).charAt(0).toUpperCase()}
-                          </div>
-                          <span className="font-medium text-gray-800 truncate">
-                            {entry.profiles?.full_name || entry.person_name}
-                          </span>
+          <>
+            {/* ── Mobile card list (hidden on sm+) ── */}
+            <div className="divide-y divide-gray-100 sm:hidden">
+              {pagedEntries.map((entry) => {
+                const isOwedToMe = entry.type === 'debt'
+                const isPaid = entry.status === 'paid' || (entry.description && entry.description.includes('[PAID]'))
+                const personName = entry.profiles?.full_name || entry.person_name
+                return (
+                  <div key={entry.id} className="p-4 flex flex-col gap-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
+                          {personName.charAt(0).toUpperCase()}
                         </div>
-                      </td>
-
-                      {/* Amount */}
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <span className={`font-bold tabular-nums ${isOwedToMe ? 'text-blue-600' : 'text-red-600'}`}>
-                          {isOwedToMe ? '+' : '−'} <span className="text-xs">Rs</span> {Number(entry.amount).toLocaleString()}
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 truncate text-sm">{personName}</p>
+                          <p className="text-xs text-gray-400">{format(parseISO(entry.created_at), 'MMM d, yyyy · h:mm a')}</p>
+                        </div>
+                      </div>
+                      <span className={`font-bold tabular-nums shrink-0 text-sm ${isOwedToMe ? 'text-blue-600' : 'text-red-600'}`}>
+                        {isOwedToMe ? '+' : '−'}<span className="text-xs"> Rs</span> {Number(entry.amount).toLocaleString()}
+                      </span>
+                    </div>
+                    {entry.description && (
+                      <p className="text-xs text-gray-500 truncate">{entry.description}</p>
+                    )}
+                    <div className="flex justify-end">
+                      {isPaid ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                          <CheckCircle2 size={12} /> Completed
                         </span>
-                        <span className="block text-xs text-gray-400 mt-0.5">
-                          {isOwedToMe ? 'Owed by' : 'Owed to'} {entry.profiles?.full_name || entry.person_name}
-                        </span>
-                      </td>
+                      ) : isOwedToMe ? (
+                        <button
+                          onClick={(e) => handleAction(e, entry, 'remind')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold"
+                        >
+                          <BellRing size={12} /> Send Reminder
+                        </button>
+                      ) : (
+                        <button
+                          onClick={(e) => handleAction(e, entry, 'pay')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-sm"
+                        >
+                          <CreditCard size={12} /> Pay Now
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
 
-                      {/* Action */}
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        {isPaid ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                            <CheckCircle2 size={12} /> Completed
+            {/* ── Desktop table (hidden on mobile) ── */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50/50">
+                    <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Date</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Description</th>
+                    <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Person</th>
+                    <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Amount</th>
+                    <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {pagedEntries.map((entry) => {
+                    const isOwedToMe = entry.type === 'debt'
+                    const isPaid = entry.status === 'paid' || (entry.description && entry.description.includes('[PAID]'))
+                    return (
+                      <tr key={entry.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                          {format(parseISO(entry.created_at), 'MMM d, yyyy')}
+                          <span className="block text-xs text-gray-400 mt-0.5">{format(parseISO(entry.created_at), 'h:mm a')}</span>
+                        </td>
+                        <td className="px-6 py-4 text-gray-700 max-w-[200px]">
+                          <span className="block truncate">
+                            {entry.description || <span className="text-gray-400 italic">No description</span>}
                           </span>
-                        ) : isOwedToMe ? (
-                          <button
-                            onClick={(e) => handleAction(e, entry, 'remind')}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold transition-colors"
-                          >
-                            <BellRing size={12} /> Send Reminder
-                          </button>
-                        ) : (
-                          <button
-                            onClick={(e) => handleAction(e, entry, 'pay')}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-colors"
-                          >
-                            <CreditCard size={12} /> Pay Now
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full flex items-center justify-center bg-blue-100 text-blue-700 text-xs font-bold shrink-0">
+                              {(entry.profiles?.full_name || entry.person_name).charAt(0).toUpperCase()}
+                            </div>
+                            <span className="font-medium text-gray-800 truncate">{entry.profiles?.full_name || entry.person_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <span className={`font-bold tabular-nums ${isOwedToMe ? 'text-blue-600' : 'text-red-600'}`}>
+                            {isOwedToMe ? '+' : '−'} <span className="text-xs">Rs</span> {Number(entry.amount).toLocaleString()}
+                          </span>
+                          <span className="block text-xs text-gray-400 mt-0.5">
+                            {isOwedToMe ? 'Owed by' : 'Owed to'} {entry.profiles?.full_name || entry.person_name}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          {isPaid ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                              <CheckCircle2 size={12} /> Completed
+                            </span>
+                          ) : isOwedToMe ? (
+                            <button
+                              onClick={(e) => handleAction(e, entry, 'remind')}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-xs font-semibold transition-colors"
+                            >
+                              <BellRing size={12} /> Send Reminder
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => handleAction(e, entry, 'pay')}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-sm transition-colors"
+                            >
+                              <CreditCard size={12} /> Pay Now
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 

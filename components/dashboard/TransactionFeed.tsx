@@ -1,7 +1,5 @@
-/**
- * TransactionFeed — Right-side scrollable activity feed.
- * Updated to Professional SaaS styling: Clean solid borders and custom scrollbar removal.
- */
+'use client'
+
 import { LedgerEntry, Profile } from '@/types/database'
 import { format, parseISO } from 'date-fns'
 import {
@@ -79,7 +77,7 @@ export default function TransactionFeed({ entries, profile }: Props) {
   )
 
   return (
-    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col h-full relative">
+    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col relative">
       <PaymentModal entryId={payingEntryId} onClose={() => setPayingEntryId(null)} />
       <div className="flex items-center justify-between mb-5 shrink-0">
         <h2
@@ -90,8 +88,7 @@ export default function TransactionFeed({ entries, profile }: Props) {
         </h2>
       </div>
 
-      {/* Scrollable list */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+      <div className="p-2 space-y-1">
         {sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center px-6">
             <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-4">

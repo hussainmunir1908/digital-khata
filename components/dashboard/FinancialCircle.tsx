@@ -1,7 +1,5 @@
-/**
- * FinancialCircle — 2×2 grid of debt contact cards.
- * Updated to Professional SaaS styling: clean grids, borders, and 'Send Reminder' text link.
- */
+'use client'
+
 import { LedgerEntry, Profile } from '@/types/database'
 import { ArrowRight, BellRing, CreditCard } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
