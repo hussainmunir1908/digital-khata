@@ -13,7 +13,7 @@ const STAGES = [
   'Finalizing secure receipt…',
 ]
 
-export default function PaymentModal({ entryId, onClose }: { entryId: string | null; onClose: () => void }) {
+export default function PaymentModal({ entryId }: { entryId: string | null; onClose: () => void }) {
   const router = useRouter()
   const [stage, setStage] = useState(STAGES[0])
   const running = useRef(false)
@@ -44,9 +44,20 @@ export default function PaymentModal({ entryId, onClose }: { entryId: string | n
       await new Promise(r => setTimeout(r, 1800))
       setStage(STAGES[1])
 
-      // 2. Mark as paid
+      // 2. Mark both sides as paid
       if (entry) {
+        // Mark the entry being paid (current user's side)
         await supabase.from('ledger').update({ status: 'paid' }).eq('id', entryId)
+
+        // Mark the counterpart entry on the other user's ledger
+        // (RLS allows this because associated_user_id = auth.uid() on their entry)
+        if (entry.associated_user_id) {
+          await supabase
+            .from('ledger')
+            .update({ status: 'paid' })
+            .eq('user_id', entry.associated_user_id)
+            .eq('associated_user_id', entry.user_id)
+        }
       }
 
       await new Promise(r => setTimeout(r, 2000))
